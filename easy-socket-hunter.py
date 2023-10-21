@@ -42,13 +42,9 @@ def main():
 def check_args_length():
   args_len = len(sys.argv)
   if args_len < 2:
-    print("One argument expected.")
-    print("For help, use the -h flag.")
-    raise SystemExit(2)
-  elif args_len < 2:
-    print("You must specify the taget IP")
-    print("For help use the -h flag")
-    raise SystemExit(2)
+      print("One argument expected.")
+      print("For help, use the -h flag.")
+      raise SystemExit(2)
 
 def check_for_flag():
   global topTen 
@@ -67,6 +63,8 @@ def is_args_valid_ip4_addr():
   match = re.search(r"^(25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}$", sys.argv[1])
   if not match:
     print("The first arugment is not a valid IPv4 address")
+    print("You must specify the target IP")
+    print("For help, use the -h flag")
     raise SystemExit(2)
   
 def exec_port_scan(port):
