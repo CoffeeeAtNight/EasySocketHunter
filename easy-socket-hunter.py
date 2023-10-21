@@ -25,33 +25,43 @@
 import sys
 import re
 import socket
+import asyncio
+import signal
 
-top10 = False
+topTen = False
 
 def main():
   check_args_length()
   check_for_flag()
   is_args_valid_ip4_addr()
-  iter_ports_for_connection()
+  asyncio.run(iter_ports_for_connection())
   sys.exit(0)
 
 ############################################################
   
 def check_args_length():
-  if (args_count := len(sys.argv)) > 3:
-    print(f"One argument expected, got {args_count - 1}")
+  args_len = len(sys.argv)
+  if args_len < 2:
+    print("One argument expected.")
+    print("For help, use the -h flag.")
     raise SystemExit(2)
-  elif args_count < 2:
+  elif args_len < 2:
     print("You must specify the taget IP")
     print("For help use the -h flag")
     raise SystemExit(2)
 
 def check_for_flag():
-  if sys.argv[1] == "-h" or sys.argv[2] == "-h":
-    print("Help")  # TODO PRINT HELP FOR SCRIPT
+  global topTen 
+  if "-h" in sys.argv:
+    print("EasySocketHunter - Port Scanner")
+    print("Usage: python easysockethunter.py <target_IP> [options]")
+    print()
+    print("Options:")
+    print("-s   Scan only the top 10 common ports.")
+    print("-h   Show this help message.")
     sys.exit(0)
-  if sys.argv[2] == "-s":
-    top10 = True
+  if "-s" in sys.argv:
+    topTen = True
 
 def is_args_valid_ip4_addr():
   match = re.search(r"^(25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}$", sys.argv[1])
@@ -67,16 +77,24 @@ def exec_port_scan(port):
     print(f"Port {port} is open")
     c.close()
   except:
-    print(f"Port {port} is closed")
     pass
   
-def iter_ports_for_connection():
-  if top10:
-    for port in range(1, 10):
-      exec_port_scan(port)
+async def iter_ports_for_connection():
+  if topTen:
+    print("Now scanning the top 10 Ports...")
+    top_ports = [80, 443, 21, 22, 25, 110, 143, 993, 995, 3306]
+    await asyncio.gather((exec_port_scan(port)) for port in top_ports)
   else:
-    for port in range(1, 65536):
-      exec_port_scan(port)
+    print("Now scanning all Ports...")
+    await  asyncio.gather((exec_port_scan(port)) for port in range(1, 65536))
+    
+  print("Finished the scan, now exiting.\nThank you for using EasySocketHunter!")
 
+def signal_handler(sig, frame):
+  print("\nScan interrupted. Exiting...")
+  sys.exit(0)
+  
+signal.signal(signal.SIGINT, signal_handler)
+  
 if __name__ == "__main__":
   main()
